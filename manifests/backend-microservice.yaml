@@ -1,0 +1,231 @@
+# =====================
+# Backend Microservices
+# =====================
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: default
+data:
+  MONGO_HOST: mongo
+  MONGO_PORT: "27017"
+  RABBITMQ_HOST: rabbitmq
+  RABBITMQ_PORT: "5672"
+
+# --- User Service ---
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: default
+spec:
+  selector:
+    app: user-service
+  ports:
+    - port: 3000
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: default
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "3000"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          image: node:18-alpine
+          command: ["node"]
+          args: ["/app/index.js"]
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: MONGO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-root-username
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-root-password
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: rabbitmq-username
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: rabbitmq-password
+          ports:
+            - containerPort: 3000
+
+# --- Order Service ---
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: default
+spec:
+  selector:
+    app: order-service
+  ports:
+    - port: 3000
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: default
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "3000"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          image: node:18-alpine
+          command: ["node"]
+          args: ["/app/index.js"]
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: MONGO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-root-username
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-root-password
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: rabbitmq-username
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: rabbitmq-password
+          ports:
+            - containerPort: 3000
+
+# --- Inventory Service ---
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-service
+  namespace: default
+spec:
+  selector:
+    app: inventory-service
+  ports:
+    - port: 3000
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-service
+  namespace: default
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "3000"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: inventory-service
+  template:
+    metadata:
+      labels:
+        app: inventory-service
+    spec:
+      containers:
+        - name: inventory-service
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          image: node:18-alpine
+          command: ["node"]
+          args: ["/app/index.js"]
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: MONGO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-root-username
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-root-password
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: rabbitmq-username
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: rabbitmq-password
+          ports:
+            - containerPort: 3000
